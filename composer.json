@@ -1,0 +1,30 @@
+{
+    "name": "makcent/yii2-wechat-official",
+    "type":"yii2-extension",
+    "description":"The wechat official number extension for the Yii framework",
+    "keyword":["yii2","wechat","extension", "official"],
+    "license":"MIT",
+    "support":{
+        "issues":"https://github.com/makcent/yii-wechat-applet/issues",
+        "forum":"https://github.com/makcent",
+        "source":"https://github.com/makcent/yii-wechat-applet"
+    },
+    "authors":[
+        {
+            "name":"Fu Ming",
+            "email":"fuming@makcent.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require":{
+        "yiisoft/yii2":"*"
+    },
+    "autoload": {
+        "psr-4": {
+            "makcent\\wechat\\official\\": "src/"
+        }
+    }
+}
+
+
+
