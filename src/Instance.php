@@ -1,13 +1,15 @@
 <?php
 namespace makcent\wechat\official;
 
-use yii\base\Component;
+use yii\base\BaseObject;
+use yii\base\UnknownClassException;
 
-class Instance extends Component
+class Instance extends BaseObject
 {
     public $appid = 'appid';
     public $secret= 'secret';
     public $token = 'token';
+    public static $ACCESS_TOKEN = '';
 
     /**
      * 组装请求参数
@@ -18,6 +20,17 @@ class Instance extends Component
     protected function getRequestUrl(string $url, array $params = []): string
     {
         return "https://api.weixin.qq.com/{$url}?".http_build_query($params);
+    }
+
+    /**
+     * 设置access_token
+     * @param $access_token
+     * @return $this
+     */
+    public function setAccessToken($access_token)
+    {
+        self::$ACCESS_TOKEN = $access_token;
+        return $this;
     }
 
     /**
@@ -62,7 +75,6 @@ class Instance extends Component
         return simplexml_load_string(\Yii::$app->request->getRawBody(),'SimpleXMLElement',LIBXML_NOCDATA);
     }
 
-
     /**
      * 发送请求
      * @param string $url
@@ -71,22 +83,28 @@ class Instance extends Component
      * @param boolean $header
      * @return array
      */
-    protected function request(string $url, array $query = [], array $params = [], boolean $header = false) : array
+    protected function request(string $url, array $query = [], array $params = [], string $header = '') : array
     {
         return $this->curl($this->getRequestUrl($url,$query), $params, $header);
     }
 
     /**
-     * 获取操作对象
-     * @param string $classname
-     * @return mixed
+     * 实例化操作对象
+     * @param $object
+     * @return BaseObject
+     * @throws UnknownClassException
      */
-    public function query(string $classname)
+    public function __get($object) : BaseObject
     {
-        $classname = "\\makcent\wechat\\official\\".ucfirst($classname);
+        $classname = "\\makcent\wechat\\official\\".ucfirst($object);
+        if (!class_exists($classname)) {
+            throw new UnknownClassException("Unable to find '$className'. Namespace missing?");
+        }
+
         return new $classname([
             'appid' => $this->appid,
             'secret'=> $this->secret,
+            'token' => $this->token,
         ]);
     }
 

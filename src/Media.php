@@ -6,15 +6,14 @@ class Media extends Instance
 {
     /**
      * 上传临时素材文件
-     * @param string $access_token
      * @param string $mode
      * @param string $media
      * @return array
      */
-    public function uploadMedia(string $access_token, string $mode, string $media) : array
+    public function uploadMedia(string $mode, string $media) : array
     {
         return $this->request('cgi-bin/media/upload',[
-            'access_token' => $access_token,
+            'access_token' => self::$ACCESS_TOKEN,
             'type'      => $mode,
         ],[
             'media' => new \CURLFile(realpath($media))
@@ -23,46 +22,43 @@ class Media extends Instance
 
     /**
      * 获取临时素材
-     * @param string $access_token
      * @param string $mediaId
      * @param string $filePath
      * @return array
      */
-    public function getMedia(string $access_token, string $mediaId, string $filePath) : array
+    public function getMedia(string $mediaId, string $filePath) : array
     {
-        $conent = $this->request('cgi-bin/media/get',[
-            'access_token' => $access_token,
+        $content = $this->request('cgi-bin/media/get',[
+            'access_token' => self::$ACCESS_TOKEN,
             'media_id'      => $mediaId,
         ],[],true);
 
-        if (isset($conent['content']['errmsg'])) {
-            return $conent;
+        if (isset($content['content']['errmsg'])) {
+            return $content;
         }
 
-        if (isset($conent['content']['video_url'])) {
-            $pathinfo = pathinfo($conent['content']['video_url']);
-            $this->curlStreamFile($conent['content']['video_url'],"{$filePath}.{$pathinfo['extension']}");
+        $filename = md5(uniqid(microtime(true) . mt_rand()));
+        if (isset($content['content']['video_url'])) {
+            $pathinfo = pathinfo($content['content']['video_url']);
+            $this->curlStreamFile($content['content']['video_url'],"{$filePath}/{$filename}.{$pathinfo['extension']}");
         }else{
-            preg_match('/filename="(.*?)"/is',$conent['headers'],$mime);
+            preg_match('/filename="(.*?)"/is',$content['headers'],$mime);
             $pathinfo = pathinfo($mime[1]);
-            file_put_contents("{$filePath}.{$pathinfo['extension']}",$conent['content']);
+            file_put_contents("{$filePath}/{$filename}.{$pathinfo['extension']}",$content['content']);
         }
-
-        $filename = md5(uniqid(microtime(true) . mt_rand())).'.'.$pathinfo['extension'];
-        $conent['content']['filename'] = "{$filePath}/{$filename}";
-        return $conent;
+        $content['content']['filename'] = "{$filePath}/{$filename}.{$pathinfo['extension']}";
+        return $content;
     }
 
     /**
      * 上传永久图文素材
-     * @param string $access_token
      * @param array $articles
      * @return array
      */
-    public function uploadNewsMaterial(string $access_token, array $articles) : array
+    public function uploadNewsMaterial(array $articles) : array
     {
         return $this->request('cgi-bin/material/add_news',[
-            'access_token' => $access_token
+            'access_token' => self::$ACCESS_TOKEN
         ],[
             'articles' => $articles
         ]);
@@ -70,15 +66,14 @@ class Media extends Instance
 
     /**
      * 新增其他类型永久素材
-     * @param string $access_token
      * @param array $mode
      * @param string $media
      * @return array
      */
-    public function uploadOtherMaterial(string $access_token, array  $mode, string $media) : array
+    public function uploadOtherMaterial(array  $mode, string $media) : array
     {
         return $this->request('cgi-bin/material/add_material',[
-            'access_token' => $access_token,
+            'access_token' => self::$ACCESS_TOKEN,
             'type'      => $mode,
         ],[
             'media' => new \CURLFile(realpath($media))
@@ -87,14 +82,13 @@ class Media extends Instance
 
     /**
      * 上传图文消息内的图片获取URL
-     * @param string $access_token
      * @param string $media
      * @return array
      */
-    public function uploadImageMaterial(string $access_token, string $media) : array
+    public function uploadImageMaterial(string $media) : array
     {
         return $this->request('cgi-bin/media/uploadimg',[
-            'access_token' => $access_token
+            'access_token' => self::$ACCESS_TOKEN
         ],[
             'media' => new \CURLFile(realpath($media))
         ]);
@@ -102,14 +96,13 @@ class Media extends Instance
 
     /**
      * 获取永久素材
-     * @param string $access_token
      * @param string $mediaId
      * @return array
      */
-    public function getMaterial(string $access_token, string $mediaId)
+    public function getMaterial(string $mediaId)
     {
         return $this->request('cgi-bin/material/get_material',[
-            'access_token' => static::getAccessToken()
+            'access_token' => self::$ACCESS_TOKEN
         ],[
             'media_id'      => $mediaId,
         ]);
@@ -117,14 +110,13 @@ class Media extends Instance
 
     /**
      * 删除永久素材
-     * @param string $access_token
      * @param string $mediaId
      * @return array
      */
-    public function delMaterial(string $access_token, string $mediaId)
+    public function delMaterial(string $mediaId)
     {
         return $this->request('cgi-bin/material/del_material',[
-            'access_token' => static::getAccessToken()
+            'access_token' => self::$ACCESS_TOKEN
         ],[
             'media_id'      => $mediaId,
         ]);
